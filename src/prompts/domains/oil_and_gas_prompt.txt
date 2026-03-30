@@ -1,0 +1,51 @@
+INDUSTRY CONTEXT: OIL AND GAS
+
+Sector coverage:
+Upstream (exploration & production)
+Midstream (transportation & storage)
+Downstream (refining & distribution)
+
+Typical project types include:
+Offshore platforms (fixed platform, FPSO, FSO)
+Onshore oil & gas processing facilities
+Refineries and gas processing plants (GPP)
+LNG / FLNG facilities
+Pipelines (onshore & offshore)
+Tank farms and storage terminals
+
+Common project activities:
+Conceptual Study & Feasibility Study
+FEED (Front End Engineering Design)
+Detailed Engineering Design (DED)
+EPC / EPCC (Engineering Procurement Construction Commissioning)
+Brownfield modification & revamp
+Hook-up & commissioning
+Maintenance, Integrity & Asset Life Extension
+
+Relevant engineering systems:
+Oil & gas separation and processing systems
+Pressure vessels, piping & pipeline systems
+Rotating equipment (compressors, pumps, turbines)
+Distributed Control Systems (DCS)
+Safety Instrumented Systems (SIS) – SIL-rated
+Emergency Shutdown Systems (ESD)
+Fire & Gas Detection Systems (F&G)
+Hazardous area electrical systems (Ex-proof)
+Corrosion protection & integrity systems (cathodic protection)
+
+Common standards and codes:
+API (American Petroleum Institute)
+ASME (Boiler & Pressure Vessel Code, B31 series)
+ISO (e.g., ISO 9001, ISO 14224, ISO 13623)
+IEC (especially IEC 61508 / 61511 for functional safety)
+NFPA (fire protection)
+ATEX / IECEx (hazardous area classification)
+NORSOK (commonly for offshore / North Sea projects)
+ANSI / ASTM (materials and testing)
+
+When rewriting CV descriptions:
+Use terminology aligned with upstream, midstream, or downstream context as appropriate.
+Emphasize experience in hydrocarbon handling, process safety, and high-integrity systems.
+Highlight involvement in FEED, EPC, commissioning, or operational support.
+Prioritize safety-critical systems (SIS, ESD, F&G) and compliance with international standards.
+Maintain strict accuracy; do not generalize experience across sectors without clear technical basis.

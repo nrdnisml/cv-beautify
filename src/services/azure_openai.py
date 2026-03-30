@@ -1,0 +1,103 @@
+import os
+import json
+import logging
+from openai import AsyncAzureOpenAI
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from src.core.model import CVChunkResponse
+from dotenv import load_dotenv
+load_dotenv()
+
+logger = logging.getLogger(__name__)
+
+# ==========================================
+# 1. Secure Async Client Initialization
+# ==========================================
+# Instantiate the client once at the module level to reuse the connection pool.
+
+endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+deployment = os.getenv("OPENAI_CHAT_DEPLOYMENT")
+api_version = os.getenv("AZURE_OPENAI_VERSION")
+api_key = os.getenv("AZURE_OPENAI_API_KEY")
+
+if not endpoint:
+    raise ValueError("AZURE_OPENAI_ENDPOINT environment variable is missing.")
+
+if api_key:
+    # ---------------------------------------------------------
+    # LOCAL DEVELOPMENT MODE: Uses API Key
+    # ---------------------------------------------------------
+    print("[INFO] AZURE_OPENAI_API_KEY found. Authenticating via API Key (Local Mode).")
+    client = AsyncAzureOpenAI(
+        azure_endpoint=endpoint,
+        api_key=api_key,
+        api_version=api_version
+    )
+else:
+    # ---------------------------------------------------------
+    # PRODUCTION MODE: Uses Entra ID (Managed Identity)
+    # ---------------------------------------------------------
+    print("[INFO] No API Key found. Authenticating via DefaultAzureCredential (Production Mode).")
+    token_provider = get_bearer_token_provider(
+        DefaultAzureCredential(), 
+        "https://cognitiveservices.azure.com/.default"
+    )
+    client = AsyncAzureOpenAI(
+        azure_endpoint=endpoint,
+        azure_ad_token_provider=token_provider,
+        api_version=api_version
+    )
+# ==========================================
+# 2. The Core Async Integration Function
+# ==========================================
+
+async def async_tailor_chunk(chunk_data: dict, project_specs: str, role_assignment: str, system_prompt: str) -> dict:
+    """
+    Asynchronously sends a chunk of CV data to Azure OpenAI for tailoring.
+    Strictly enforces the CVChunkResponse Pydantic schema to prevent hallucinated keys.
+    """
+    
+    # Construct the user message, isolating the context from the payload
+    user_message = f"""
+    TARGET ROLE ASSIGNMENT:
+    {role_assignment}
+    
+    PROJECT REQUIREMENTS:
+    {project_specs}
+
+    CV CHUNK TO TAILOR (Strictly follow JSON schema):
+    {json.dumps(chunk_data, indent=2)}
+    """
+
+    try:
+        # Use the async beta parse method to enforce the Pydantic schema
+        response = await client.beta.chat.completions.parse(
+            model=deployment,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            response_format=CVChunkResponse, # Binds the output to your Pydantic model
+            temperature=0.2,                 # Low temperature for analytical, grounded rewriting
+            max_tokens=4000                  # Ensure enough runway for large text blocks
+        )
+
+        message = response.choices[0].message
+
+        # Azure OpenAI Content Filtering check
+        if getattr(message, "refusal", None):
+            logger.error(f"Azure OpenAI refused the request (Content Filter): {message.refusal}")
+            raise RuntimeError(f"Model refusal: {message.refusal}")
+
+        if not message.parsed:
+             raise ValueError("Model failed to return parsed JSON.")
+
+        # message.parsed is already a validated CVChunkResponse Pydantic object
+        # Convert it back to a dictionary for the orchestrator to merge
+        return message.parsed.model_dump()
+
+    except Exception as e:
+        logger.error(f"Async Azure OpenAI API call failed for chunk: {str(e)}")
+        # We intentionally re-raise the exception here.
+        # The orchestrator.py is designed to catch this and apply the fallback logic 
+        # (returning the unmodified chunk) so the whole CV doesn't fail.
+        raise e

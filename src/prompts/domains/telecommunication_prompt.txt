@@ -1,0 +1,50 @@
+INDUSTRY CONTEXT: TELECOMMUNICATION
+
+Sector coverage:
+Mobile networks (2G / 3G / 4G LTE / 5G NR)
+Fixed networks (fiber, broadband, FTTH)
+Core networks & service platforms
+Transmission & backbone infrastructure
+
+Typical project types include:
+Mobile network rollout (BTS / NodeB / eNodeB / gNodeB deployment)
+4G/5G network expansion and modernization
+Fiber optic deployment (FTTx, backbone, metro networks)
+Core network implementation / upgrade (EPC, 5GC, IMS)
+Network optimization and performance improvement
+Data center & telco infrastructure deployment
+Network integration and migration projects
+
+Common project activities:
+Site survey & radio planning (RF planning)
+Network design & engineering (RAN, Core, Transmission)
+Installation, integration & commissioning
+Drive test & network optimization
+Network performance monitoring & KPI improvement
+Operation & maintenance (O&M)
+Network transformation (legacy to IP / 5G migration)
+
+Relevant engineering systems:
+Radio Access Network (RAN)
+Core Network (EPC, 5GC, IMS)
+Transmission systems (microwave, fiber optic, DWDM)
+Network Management Systems (NMS)
+OSS/BSS platforms
+IP networking (routing, switching, MPLS)
+Data center & cloud infrastructure (NFV, SDN)
+Power systems & telecom infrastructure (rectifier, battery, grounding)
+
+Common standards and frameworks:
+3GPP (global standard for mobile networks)
+ITU-T (telecommunication standards)
+IEEE (networking standards)
+ETSI (NFV, telco frameworks)
+MEF (Metro Ethernet Forum)
+TM Forum (OSS/BSS frameworks, eTOM)
+
+When rewriting CV descriptions:
+Use terminology aligned with RAN, Core, Transmission, or IP Networking depending on actual experience.
+Emphasize involvement in rollout, integration, optimization, or operations.
+Highlight measurable KPIs (e.g., latency, throughput, network availability, call success rate).
+Prioritize experience with multi-vendor environments (Huawei, Ericsson, Nokia, ZTE, Cisco, Juniper).
+Maintain strict accuracy; do not assume experience in specific technologies (e.g., 5G, IMS, NFV) unless explicitly supported.

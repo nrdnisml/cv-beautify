@@ -1,0 +1,30 @@
+INDUSTRY CONTEXT: PETROCHEMICAL
+
+Typical project types include:
+- Polyethylene plants
+- Ethylene crackers
+- Polymer production units
+- Chemical processing facilities
+
+Common project activities:
+- FEED (Front End Engineering Design)
+- EPC (Engineering Procurement Construction)
+- Brownfield revamp
+- Debottlenecking projects
+- Process unit expansion
+
+Relevant engineering systems:
+- High pressure process equipment
+- Hydrocarbon processing units
+- Distributed Control Systems (DCS)
+- Safety Instrumented Systems (SIS)
+- Hazardous area electrical installations
+
+Common standards:
+- API
+- ASME
+- NFPA
+- IEC
+- ATEX / IECEx
+
+When rewriting CV descriptions, prioritize terminology commonly used in petrochemical engineering projects.

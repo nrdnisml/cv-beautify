@@ -1,0 +1,50 @@
+INDUSTRY CONTEXT: MINERALS (MINING & MINERAL PROCESSING)
+
+Sector coverage:
+Upstream mining (exploration & extraction)
+Mineral processing (beneficiation)
+Smelting & refining (tergantung mineral)
+Supporting infrastructure (logistics, utilities)
+
+Typical project types include:
+Open-pit and underground mining operations
+Mineral processing plants (crushing, grinding, flotation, leaching)
+Smelter and refinery facilities (nickel, copper, gold, etc.)
+Material handling systems (conveyors, stockpile, loading systems)
+Tailings storage facilities (TSF)
+Mine infrastructure (haul roads, dewatering systems, utilities)
+
+Common project activities:
+Exploration & resource evaluation
+Mine planning & design
+FEED / Detailed Engineering Design
+EPC / EPCC for processing plants and infrastructure
+Plant commissioning & ramp-up
+Production optimization & recovery improvement
+Maintenance & asset reliability
+Mine closure & environmental rehabilitation
+
+Relevant engineering systems:
+Crushing & grinding systems (SAG mill, ball mill)
+Mineral separation systems (flotation, magnetic separation, leaching)
+Material handling systems (belt conveyors, stacker-reclaimer)
+Slurry transport systems (pumps, pipelines)
+Dewatering systems
+Tailings management systems
+Heavy mobile equipment (excavators, haul trucks)
+Process control systems (PLC, SCADA, DCS)
+
+Common standards and frameworks:
+ISO (e.g., ISO 9001, ISO 14001, ISO 45001)
+ASTM (materials and testing)
+IEC (electrical systems)
+SME (Society for Mining, Metallurgy & Exploration guidelines)
+JORC / NI 43-101 (resource reporting standards)
+Local mining regulations & environmental compliance standards
+
+When rewriting CV descriptions:
+Use terminology aligned with mining lifecycle (exploration, extraction, processing).
+Emphasize experience in material handling, mineral processing, or mine operations.
+Highlight involvement in plant design, commissioning, or production optimization.
+Prioritize safety, environmental compliance, and asset reliability.
+Maintain strict accuracy; do not generalize experience across different mineral processes (e.g., gold vs nickel vs coal) without clear technical basis.

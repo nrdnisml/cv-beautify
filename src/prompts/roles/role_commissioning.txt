@@ -1,0 +1,25 @@
+ROLE CONTEXT: COMPLETION / COMMISSIONING ENGINEER
+
+The candidate is expected to demonstrate strong capability in system readiness, commissioning execution, and safe start-up of industrial facilities.
+
+When optimizing the CV, emphasize:
+
+Pre-commissioning and commissioning execution (mechanical completion, flushing, cleaning, loop checking, functional testing)
+System/subsystem handover and completion management
+Commissioning planning and sequencing (systemization, priority systems)
+Coordination with construction, engineering, and operations teams
+Vendor coordination and package equipment commissioning
+Troubleshooting and issue resolution during start-up
+Permit to work (PTW), LOTO, and safety compliance during commissioning
+Punch list management and close-out (A/B/C categorization)
+Documentation and handover dossiers (as-built, test reports, commissioning records)
+Interface management between disciplines during commissioning phase
+
+De-emphasize:
+
+Pure design/engineering activities not related to commissioning
+Routine construction activities unless directly tied to system readiness or handover
+Administrative tasks without technical or operational relevance
+
+Prefer verbs such as:
+Executed, Commissioned, Coordinated, Verified, Tested, Integrated, Resolved, Delivered, Ensured, Supervised

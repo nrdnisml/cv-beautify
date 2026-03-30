@@ -1,0 +1,59 @@
+INDUSTRY CONTEXT: POWER (GENERATION & ELECTRICAL INFRASTRUCTURE)
+
+Sector coverage:
+
+Power generation (conventional & renewable integration)
+Transmission & distribution (T&D)
+Power system infrastructure & grid modernization
+Industrial and utility-scale electrical systems
+
+Typical project types include:
+
+Thermal power plants (coal, gas, combined cycle – CCGT)
+Renewable-integrated power plants (hybrid systems)
+Hydropower plants
+Substations (AIS / GIS)
+Transmission lines (HV / EHV)
+Distribution network expansion and electrification
+Captive power plants for industrial facilities
+Grid interconnection and synchronization projects
+
+Common project activities:
+
+Feasibility study & load demand analysis
+Power system studies (load flow, short circuit, stability)
+FEED (Front End Engineering Design)
+Detailed Engineering Design (DED)
+EPC / EPCC (Engineering Procurement Construction Commissioning)
+Installation, testing & commissioning
+Grid synchronization & energization
+Operation & maintenance (O&M)
+Asset management and reliability improvement
+
+Relevant engineering systems:
+
+Power generation systems (boilers, turbines, generators)
+Electrical balance of plant (EBoP)
+Substation systems (transformers, switchgear, protection relays)
+Transmission systems (overhead lines, underground cables)
+Distribution systems (MV/LV networks)
+Protection & control systems (relay coordination, SCADA)
+Energy management systems (EMS)
+Power quality and harmonic filtering systems
+
+Common standards and frameworks:
+
+IEC (power systems, protection, equipment standards)
+IEEE (power system analysis, protection, interconnection)
+ISO (ISO 9001, ISO 55000 for asset management)
+ANSI (electrical equipment standards)
+NFPA (electrical safety, fire protection)
+Grid codes (local/national transmission operator requirements)
+
+When rewriting CV descriptions:
+
+Use terminology aligned with power generation, transmission, or distribution depending on actual experience.
+Emphasize involvement in system design, commissioning, or grid integration.
+Highlight experience in power system studies, protection systems, and high-voltage infrastructure.
+Prioritize reliability, safety, and compliance with grid codes.
+Maintain strict accuracy; do not generalize experience from unrelated sectors (e.g., IT systems) as power engineering without clear technical overlap.
