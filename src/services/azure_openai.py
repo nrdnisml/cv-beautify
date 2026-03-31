@@ -5,6 +5,8 @@ from openai import AsyncAzureOpenAI
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from src.core.model import CVChunkResponse
 from dotenv import load_dotenv
+
+from src.utils.prompt_loader import PromptLoader
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -16,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 deployment = os.getenv("OPENAI_CHAT_DEPLOYMENT")
+deployment_mini = os.getenv("OPENAI_CHAT_DEPLOYMENT_MINI")
 api_version = os.getenv("AZURE_OPENAI_VERSION")
 api_key = os.getenv("AZURE_OPENAI_API_KEY")
 
@@ -97,7 +100,51 @@ async def async_tailor_chunk(chunk_data: dict, project_specs: str, role_assignme
 
     except Exception as e:
         logger.error(f"Async Azure OpenAI API call failed for chunk: {str(e)}")
-        # We intentionally re-raise the exception here.
         # The orchestrator.py is designed to catch this and apply the fallback logic 
         # (returning the unmodified chunk) so the whole CV doesn't fail.
         raise e
+
+async def synthesize_role_context(
+    role_title: str, 
+    sector: str, 
+    user_intent: str
+) -> str:
+    """
+    Uses AI to synthesize the role, sector, and user intent into a single, 
+    cohesive directive for the main CV enhancement prompt.
+    """
+    system_prompt = (
+        "You are an expert technical recruiter and prompt engineer. "
+        "Your job is to combine a target job role, an industry sector context, "
+        "and specific user instructions into a single, highly cohesive 'Target Role Context' paragraph. "
+        "This paragraph will be used to guide another AI in rewriting a candidate's CV."
+    )
+    loader = PromptLoader()
+    role_template_content = loader.load("roles", "synthesize_role_template")
+    user_prompt = f"""
+    1. TARGET ROLE: {role_title}
+    2. ROLE BASE TEMPLATE: {role_template_content}
+    3. TARGET SECTOR: {sector}
+    4. SPECIFIC USER INTENT: {user_intent}
+
+    INSTRUCTIONS:
+    Synthesize the above information into a single set of clear, actionable guidelines. 
+    Ensure the user's specific intent is prioritized, but grounded in the reality of the role and sector.
+    Do not output pleasantries. Output only the synthesized context.
+    """
+
+    try:
+        # Note: Replace this with your actual Azure OpenAI client call format
+        response = await client.beta.chat.completions.parse(
+            model=deployment_mini, 
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.3, 
+            max_tokens=500
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error(f"Failed to synthesize role context: {str(e)}")
+        return f"Role: {role_title}\nSector: {sector}\nIntent: {user_intent}"

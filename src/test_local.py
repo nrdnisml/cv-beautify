@@ -6,7 +6,7 @@ from pathlib import Path
 from src.utils import PromptLoader
 
 # Import the core orchestrator bypassing the API layer
-from src.core.orchestrator import process_cv_enhancement
+from src.core.orchestrator import process_cv_enhancement, role_context_synthesis
 
 # Configure logging to see the debug steps in your terminal
 logging.basicConfig(
@@ -34,24 +34,30 @@ async def run_local_test():
     # Setting the context to focus on a completion management project, 
     # as this is highly impactful for engineering company workflows.
     loader = PromptLoader()
-    project_specs = loader.load("domains", "green_prompt")
     role_assignment = loader.load("roles", "role_commissioning")
+    project_specs = loader.sectorSelector("green")
 
     logger.info(f"Initiating Map-Reduce tailoring for role: {role_assignment}")
 
     try:
+        role_test = await role_context_synthesis(
+            role_title="Project Manager",
+            sector="Truck Manufacturing",
+            user_intent="Election of a project manager role with a focus on completion management projects in the truck manufacturing sector."
+        )
         # 4. Execute the AI orchestration
         # This will automatically chunk the projects, call Azure OpenAI, and reassemble
-        enhanced_cv = await process_cv_enhancement(
-            raw_cv=raw_cv,
-            project_specs=project_specs,
-            role_assignment=role_assignment,
-            chunk_size=2  # Using a smaller chunk size to explicitly test the batching logic
-        )
+        # enhanced_cv = await process_cv_enhancement(
+        #     raw_cv=raw_cv,
+        #     project_specs=project_specs,
+        #     role_assignment=role_assignment,
+        #     chunk_size=2  # Using a smaller chunk size to explicitly test the batching logic
+        # )
 
         # 5. Save the final output for manual inspection
         with open(output_file, "w") as f:
-            json.dump(enhanced_cv, f, indent=2)
+            # json.dump(enhanced_cv, f, indent=2)
+            json.dump(role_test, f, indent=2)
             
         logger.info(f"Success! The tailored CV has been written to {output_file}")
 

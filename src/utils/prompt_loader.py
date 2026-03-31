@@ -13,3 +13,9 @@ class PromptLoader:
             raise FileNotFoundError(f"{category} prompt not found: {file_path}")
 
         return file_path.read_text(encoding="utf-8").strip()
+
+    def sectorSelector(self, sector: str) -> str:
+        try:
+            return self.load("domains", f"{sector.lower()}_prompt")
+        except KeyError:
+            raise ValueError(f"Invalid sector: {sector}")
