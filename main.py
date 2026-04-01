@@ -1,4 +1,5 @@
 import logging
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -11,11 +12,15 @@ class AppServer:
     def __init__(self):
         self._setup_logging()
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.ENV = os.getenv("ENV", "dev")
         
         self.app = FastAPI(
             title="CV Beautifier API",
             description="An API to enhance CVs using AI orchestration with Map-Reduce tailoring.",
-            version="1.0.0"
+            version="1.0.0",
+            docs_url=None if self.ENV == "prod" else "/docs",
+            redoc_url=None if self.ENV == "prod" else "/redoc",
+            openapi_url=None if self.ENV == "prod" else "/openapi.json"
         )    
         
         self._configure_middlewares()

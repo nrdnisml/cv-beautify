@@ -6,7 +6,7 @@ from pathlib import Path
 from src.utils import PromptLoader
 
 # Import the core orchestrator bypassing the API layer
-from src.core.orchestrator import process_cv_enhancement, role_context_synthesis
+from src.core.orchestrator import get_role_prompt, process_cv_enhancement
 
 # Configure logging to see the debug steps in your terminal
 logging.basicConfig(
@@ -40,7 +40,7 @@ async def run_local_test():
     logger.info(f"Initiating Map-Reduce tailoring for role: {role_assignment}")
 
     try:
-        role_test = await role_context_synthesis(
+        role_test = await get_role_prompt(
             role_title="Project Manager",
             sector="Truck Manufacturing",
             user_intent="Election of a project manager role with a focus on completion management projects in the truck manufacturing sector."

@@ -93,6 +93,6 @@ async def process_cv_enhancement(raw_cv: Dict[str, Any], project_specs: str, rol
 
     return final_cv
 
-async def role_context_synthesis(role_title: str, sector: str, user_intent: str) -> str:
+async def get_role_prompt(role_title: str, sector: str, user_intent: str) -> str:
     role = await synthesize_role_context(role_title, sector, user_intent)
     return role
