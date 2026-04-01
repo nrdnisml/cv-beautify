@@ -21,18 +21,22 @@ async def enhance_cv(request: Request, payload: EnhanceCVRequest):
 
     loader = PromptLoader()
     project_specs = loader.sectorSelector(payload.project_sector)
-
-    role_prompt = await get_role_prompt(
-        role_title=payload.role_assignment,
-        sector=payload.project_sector,
-        user_intent=payload.user_intent
+    combined_role_context = (
+        f"Target Role: {payload.role_assignment}\n"
+        f"Specific User Intent/Instructions: {payload.user_intent}"
     )
+    # role_prompt = await get_role_prompt(
+    #     role_title=payload.role_assignment,
+    #     sector=payload.project_sector,
+    #     user_intent=payload.user_intent
+    # )
 
     try:
         enhanced_cv = await process_cv_enhancement(
             raw_cv=payload.input_cv,
             project_specs=project_specs,
-            role_assignment=role_prompt,
+            role_assignment=combined_role_context,
+            # role_assignment=role_prompt,
             chunk_size=3
         )
         return {

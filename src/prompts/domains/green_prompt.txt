@@ -1,57 +1,11 @@
-INDUSTRY CONTEXT: GREEN / RENEWABLE ENERGY
+Focus:
+- Renewable energy (solar, wind, hydro, biomass, SAF)
+- EPC, commissioning, optimization
+- Biofuel & energy systems
 
-Sector coverage:
+Use standards:
+- IEC, IEEE, ISO, ASTM D7566
 
-Renewable energy generation (solar, wind, hydro, geothermal, biomass)
-Energy transition & decarbonization projects
-Sustainable fuels & bioenergy (including Sustainable Aviation Fuel – SAF)
-Grid integration and energy storage systems
-
-Typical project types include:
-
-Solar power plants (PV, rooftop, utility-scale)
-Wind farms (onshore & offshore)
-Hydropower and geothermal plants
-Battery Energy Storage Systems (BESS)
-Green hydrogen production facilities
-Waste-to-energy and biomass plants
-Biofuel and Sustainable Aviation Fuel (SAF) production (e.g., avtur from palm oil waste / biomass feedstock)
-EV charging infrastructure
-Smart grid and grid modernization projects
-
-Common project activities:
-
-Feasibility study & resource assessment (including biomass feedstock evaluation)
-FEED (Front End Engineering Design)
-Detailed Engineering Design (DED)
-EPC / EPCC (Engineering Procurement Construction Commissioning)
-Process design for biofuel conversion (e.g., hydroprocessing, gasification)
-Commissioning & performance testing
-Operation & maintenance (O&M)
-Asset optimization and lifecycle management
-
-Relevant engineering systems:
-
-Biomass processing and conversion systems
-Biofuel refining units (hydrotreated vegetable oil – HVO, SAF processing)
-Feedstock handling and pre-treatment systems
-Process control systems (DCS, PLC, SCADA)
-Power generation and utility systems
-Energy storage systems (BESS)
-Grid interconnection systems (substation, transformers)
-
-Common standards and frameworks:
-
-IEC / IEEE (electrical and power systems)
-ISO (ISO 9001, ISO 14001, ISO 50001)
-ASTM (e.g., ASTM D7566 for Sustainable Aviation Fuel)
-IATA / ICAO guidelines (aviation fuel sustainability)
-Environmental and sustainability regulations (ESG compliance, carbon reduction frameworks)
-
-When rewriting CV descriptions:
-
-Use terminology aligned with renewable energy, bioenergy, and sustainable fuel production.
-Emphasize experience in biomass processing, fuel conversion, or energy systems where applicable.
-Highlight involvement in EPC, commissioning, and process optimization.
-Distinguish clearly between power generation projects and fuel production (SAF/biofuel).
-Maintain strict accuracy; do not classify conventional refining or unrelated processing as sustainable fuel production without clear technical relevance.
+Rules:
+- No hallucination
+- Keep domain accuracy

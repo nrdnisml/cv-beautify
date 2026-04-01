@@ -3,6 +3,7 @@ import asyncio
 import logging
 from pathlib import Path
 from typing import Dict, Any, List
+from functools import lru_cache
 
 # Assuming you have an async wrapper for the Azure OpenAI call in your services layer
 from src.services.azure_openai import async_tailor_chunk, synthesize_role_context
@@ -10,6 +11,7 @@ from src.core.model import FullCV
 
 logger = logging.getLogger(__name__)
 
+@lru_cache(maxsize=1)
 def load_system_prompt(filename: str = "system_prompt.txt") -> str:
     """Loads the prompt from the text file."""
     prompt_path = Path(__file__).parent.parent / "prompts/core" / filename

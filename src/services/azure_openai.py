@@ -58,7 +58,7 @@ async def async_tailor_chunk(chunk_data: dict, project_specs: str, role_assignme
     Asynchronously sends a chunk of CV data to Azure OpenAI for tailoring.
     Strictly enforces the CVChunkResponse Pydantic schema to prevent hallucinated keys.
     """
-    
+    # {project_specs}
     # Construct the user message, isolating the context from the payload
     user_message = f"""
     TARGET ROLE ASSIGNMENT:
@@ -74,14 +74,14 @@ async def async_tailor_chunk(chunk_data: dict, project_specs: str, role_assignme
     try:
         # Use the async beta parse method to enforce the Pydantic schema
         response = await client.beta.chat.completions.parse(
-            model=deployment,
+            model=deployment_mini,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
             response_format=CVChunkResponse, # Binds the output to your Pydantic model
             temperature=0.2,                 # Low temperature for analytical, grounded rewriting
-            max_tokens=4000                  # Ensure enough runway for large text blocks
+            max_tokens=700                  # Ensure enough runway for large text blocks
         )
 
         message = response.choices[0].message
