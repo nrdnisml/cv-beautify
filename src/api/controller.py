@@ -1,10 +1,12 @@
 import logging
+import json
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
 
 from src.api.schemas import EnhanceCVRequest
 from src.api.security import auth_guard
 from src.api.limiter import limiter
-from src.core.orchestrator import process_cv_enhancement
+from src.core.orchestrator import process_cv_enhancement_stream
 from src.utils.prompt_loader import PromptLoader
 
 router = APIRouter()
@@ -12,12 +14,12 @@ logger = logging.getLogger("CVEnhancementController")
 
 
 @router.post(
-    "/api/v1/enhance-cv",
+    "/api/v1/enhance-cv/stream",
     dependencies=[Depends(auth_guard.verify)]
 )
 @limiter.limit("5/minute")
-async def enhance_cv(request: Request, payload: EnhanceCVRequest):
-    logger.info("Received CV request to enhance for role: %s", payload.role_assignment)
+async def enhance_cv_stream(request: Request, payload: EnhanceCVRequest):
+    logger.info("Received CV streaming request to enhance for role: %s", payload.role_assignment)
 
     loader = PromptLoader()
     project_specs = loader.sectorSelector(payload.project_sector)
@@ -25,39 +27,29 @@ async def enhance_cv(request: Request, payload: EnhanceCVRequest):
         f"Target Role: {payload.role_assignment}\n"
         f"Specific User Intent/Instructions: {payload.user_intent}"
     )
-    # role_prompt = await get_role_prompt(
-    #     role_title=payload.role_assignment,
-    #     sector=payload.project_sector,
-    #     user_intent=payload.user_intent
-    # )
 
-    try:
-        enhanced_cv = await process_cv_enhancement(
-            raw_cv=payload.input_cv,
-            project_specs=project_specs,
-            role_assignment=combined_role_context,
-            # role_assignment=role_prompt,
-            chunk_size=3
-        )
-        return {
-            "code": 200,
-            "status": "success",
-            "message": "CV enhancement completed successfully",
-            "data": enhanced_cv
-        }
-    except ValueError as ve:
-        logger.error(f"Validation error: {str(ve)}")
-        raise HTTPException(status_code=400, detail=f"Invalid input: {str(ve)}")
-    except RuntimeError as re:
-        logger.error(f"Processing error: {str(re)}")
-        raise HTTPException(status_code=500, detail=f"Processing failed: {str(re)}")
-    except Exception as e:
-        logger.error(f"Internal Server error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred during CV enhancement."
-        )
+    async def event_generator():
+        try:
+            # Consume the orchestrator stream
+            async for update in process_cv_enhancement_stream(
+                raw_cv=payload.input_cv,
+                project_specs=project_specs,
+                role_assignment=combined_role_context,
+                chunk_size=2 
+            ):
+                # Format payload according to SSE standards: "data: <json>\n\n"
+                yield f"data: {json.dumps(update)}\n\n"
+                
+        except Exception as e:
+            logger.error(f"Unexpected streaming error: {str(e)}")
+            error_payload = {
+                "status": "failed", 
+                "progress": 100, 
+                "message": f"Server encountered a critical error: {str(e)}"
+            }
+            yield f"data: {json.dumps(error_payload)}\n\n"
 
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @router.get(
     "/api/v1/sectors",
