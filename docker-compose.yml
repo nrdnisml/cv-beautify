@@ -1,0 +1,13 @@
+services:
+  cv-ai-app:
+    build: .
+    container_name: cv-ai-app
+    restart: always
+    ports:
+      - "8181:8181"
+    env_file:
+      - .env
+    # Optional: If your SSE endpoints are under heavy load and you want to ensure
+    # Docker doesn't kill the container prematurely during a graceful shutdown,
+    # you can increase the stop grace period.
+    stop_grace_period: 30s
