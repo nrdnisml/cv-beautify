@@ -62,6 +62,9 @@ class Membership(BaseModel):
     DELETE: bool = False
     id: IDType = None  # Replaced Any with IDType
     cv: IDType = None  # Replaced Any with IDType
+    
+class Description(BaseModel):
+    description: str
 
 # This is the schema Azure OpenAI will be forced to return for each chunk
 class CVChunkResponse(BaseModel):

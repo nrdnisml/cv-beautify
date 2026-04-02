@@ -2,8 +2,8 @@ import os
 import json
 import logging
 from openai import AsyncAzureOpenAI
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
-from src.core.model import CVChunkResponse
+from azure.identity import ManagedIdentityCredential, get_bearer_token_provider
+from src.core.model import CVChunkResponse, Description
 from dotenv import load_dotenv
 
 from src.utils.prompt_loader import PromptLoader
@@ -20,7 +20,7 @@ endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 deployment = os.getenv("OPENAI_CHAT_DEPLOYMENT")
 deployment_mini = os.getenv("OPENAI_CHAT_DEPLOYMENT_MINI")
 api_version = os.getenv("AZURE_OPENAI_VERSION")
-api_key = os.getenv("AZURE_OPENAI_API_KEY")
+api_key = os.getenv("AZURE_OPENAI_KEY")
 
 if not endpoint:
     raise ValueError("AZURE_OPENAI_ENDPOINT environment variable is missing.")
@@ -36,12 +36,14 @@ if api_key:
         api_version=api_version
     )
 else:
-    # ---------------------------------------------------------
-    # PRODUCTION MODE: Uses Entra ID (Managed Identity)
-    # ---------------------------------------------------------
-    print("[INFO] No API Key found. Authenticating via DefaultAzureCredential (Production Mode).")
+    # PRODUCTION MODE
+    print("[INFO] No API Key found. Authenticating via Managed Identity (Production Mode).")
+    
+    # Directly target Managed Identity, skipping the DefaultAzureCredential chain
+    credential = ManagedIdentityCredential()
+    
     token_provider = get_bearer_token_provider(
-        DefaultAzureCredential(), 
+        credential, 
         "https://cognitiveservices.azure.com/.default"
     )
     client = AsyncAzureOpenAI(
@@ -81,7 +83,7 @@ async def async_tailor_chunk(chunk_data: dict, project_specs: str, role_assignme
             ],
             response_format=CVChunkResponse, # Binds the output to your Pydantic model
             temperature=0.2,                 # Low temperature for analytical, grounded rewriting
-            max_tokens=700                  # Ensure enough runway for large text blocks
+            max_tokens=2000                  # Ensure enough runway for large text blocks
         )
 
         message = response.choices[0].message
@@ -96,12 +98,76 @@ async def async_tailor_chunk(chunk_data: dict, project_specs: str, role_assignme
 
         # message.parsed is already a validated CVChunkResponse Pydantic object
         # Convert it back to a dictionary for the orchestrator to merge
-        return message.parsed.model_dump()
+        # return message.parsed.model_dump()
+        return {
+            "data": message.parsed.model_dump(),
+            "usage": response.usage
+        }
 
     except Exception as e:
         logger.error(f"Async Azure OpenAI API call failed for chunk: {str(e)}")
         # The orchestrator.py is designed to catch this and apply the fallback logic 
         # (returning the unmodified chunk) so the whole CV doesn't fail.
+        raise e
+
+async def async_rewrite_description(original_description: str, project_specs: str, role_assignment: str, system_prompt: str) -> dict:
+    """
+    Asynchronously sends the CV professional summary (description) to Azure OpenAI for tailoring.
+    Strictly enforces the CVDescriptionResponse Pydantic schema.
+    """
+    
+    # Construct the user message with explicit rewriting instructions
+    user_message = f"""
+    TARGET ROLE ASSIGNMENT:
+    {role_assignment}
+    
+    PROJECT REQUIREMENTS:
+    {project_specs}
+
+    ORIGINAL DESCRIPTION TO TAILOR:
+    {original_description}
+
+    INSTRUCTIONS:
+    Rewrite the original description to highlight the candidate's skills and experiences that are most relevant to the Target Role and Project Requirements. 
+    - Maintain a professional, executive tone.
+    - Keep it concise and impactful.
+    - DO NOT invent new skills or experiences that are not supported by the original description.
+    - Max 40 words. Focus on tailoring the content, not expanding it.
+    """
+
+    try:
+        # Use the async beta parse method to enforce the Pydantic schema
+        response = await client.beta.chat.completions.parse(
+            model=deployment_mini,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            response_format=Description, # Binds the output to your Pydantic model
+            temperature=0.3,                       # Slightly higher than 0.2 to allow smoother sentence restructuring
+            max_tokens=200                         # Descriptions are usually short, 400 is plenty of runway
+        )
+
+        message = response.choices[0].message
+
+        # Azure OpenAI Content Filtering check
+        if getattr(message, "refusal", None):
+            logger.error(f"Azure OpenAI refused the description request (Content Filter): {message.refusal}")
+            raise RuntimeError(f"Model refusal: {message.refusal}")
+
+        if not message.parsed:
+             raise ValueError("Model failed to return parsed JSON for description.")
+
+        # message.parsed is the validated CVDescriptionResponse Pydantic object
+        return {
+            "data": message.parsed.model_dump(),
+            "usage": response.usage
+        }
+
+
+    except Exception as e:
+        logger.error(f"Async Azure OpenAI API call failed for description rewrite: {str(e)}")
+        # The orchestrator will catch this and fallback to the original string
         raise e
 
 async def synthesize_role_context(

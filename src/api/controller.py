@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from src.api.schemas import EnhanceCVRequest
 from src.api.security import auth_guard
 from src.api.limiter import limiter
-from src.core.orchestrator import process_cv_enhancement, get_role_prompt
+from src.core.orchestrator import process_cv_enhancement
 from src.utils.prompt_loader import PromptLoader
 
 router = APIRouter()
