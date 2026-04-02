@@ -83,7 +83,7 @@ async def async_tailor_chunk(chunk_data: dict, project_specs: str, role_assignme
             ],
             response_format=CVChunkResponse, # Binds the output to your Pydantic model
             temperature=0.2,                 # Low temperature for analytical, grounded rewriting
-            max_tokens=2000                  # Ensure enough runway for large text blocks
+            max_tokens=1200                  # Ensure enough runway for large text blocks
         )
 
         message = response.choices[0].message

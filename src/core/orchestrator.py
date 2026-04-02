@@ -98,6 +98,7 @@ async def process_cv_enhancement_stream(raw_cv: Dict[str, Any], project_specs: s
     final_description = original_description
     total_prompt_tokens = 0
     total_completion_tokens = 0
+    total_tokens = 0
 
     # Execute and stream results as they finish
     for future in asyncio.as_completed(tasks):
@@ -116,17 +117,26 @@ async def process_cv_enhancement_stream(raw_cv: Dict[str, Any], project_specs: s
             # Aggregate tokens
             total_prompt_tokens += result["usage"].prompt_tokens
             total_completion_tokens += result["usage"].completion_tokens
+            total_tokens = total_prompt_tokens + total_completion_tokens
             
             # Save data
             if task_type == "chunk":
-                chunk_results[index] = result["data"].get("projects", [])
-                msg = f"Tailored project chunk {index + 1} successfully ({completed_tasks}/{total_tasks})"
-            else:
+                ai_projects = result["data"].get("projects", [])
+                
+                # --- NEW: CHUNK-LEVEL INTEGRITY CHECK ---
+                if len(ai_projects) != len(chunks[index]):
+                    logger.warning(f"Chunk {index} length mismatch: Expected {len(chunks[index])}, got {len(ai_projects)}. Falling back to original chunk.")
+                    chunk_results[index] = chunks[index] # Fallback to original
+                    msg = f"Chunk {index + 1} size mismatch, using original data ({completed_tasks}/{total_tasks})"
+                else:
+                    chunk_results[index] = ai_projects
+                    msg = f"Tailored project chunk {index + 1} successfully ({completed_tasks}/{total_tasks})"
+                    
+            else: # description task
                 final_description = result["data"].get("description", original_description)
                 msg = f"Rewrote professional summary successfully ({completed_tasks}/{total_tasks})"
 
         yield {"status": "processing", "progress": progress, "message": msg}
-
     # REDUCE phase
     yield {"status": "processing", "progress": 95, "message": "Reassembling optimized CV..."}
 
@@ -138,13 +148,14 @@ async def process_cv_enhancement_stream(raw_cv: Dict[str, Any], project_specs: s
     === TOKEN USAGE REPORT ===
     Prompt Tokens:     {total_prompt_tokens}
     Completion Tokens: {total_completion_tokens}
-    Total Tokens:      {total_prompt_tokens + total_completion_tokens}
+    Total Tokens:      {total_tokens}
     ==========================
     """)
 
     # Integrity Check
     if len(tailored_projects) != len(all_projects):
-        yield {"status": "failed", "progress": 100, "message": "Fatal Error: AI hallucination resulted in missing projects."}
+        yield {"status": "failed", "progress": 100, 
+               "message": f"Fatal Error: AI hallucination resulted in missing projects. Expected {len(all_projects)}, got {len(tailored_projects)}"}
         return
 
     final_cv = {
@@ -154,7 +165,7 @@ async def process_cv_enhancement_stream(raw_cv: Dict[str, Any], project_specs: s
     }
 
     # Final completion yield containing the data payload
-    yield {"status": "completed", "progress": 100, "message": "CV Enhancement Complete!", "data": final_cv}
+    yield {"status": "completed", "tokens": total_tokens, "progress": 100, "message": "CV Enhancement Complete!", "data": final_cv}
 
 # async def get_role_prompt(role_title: str, sector: str, user_intent: str) -> str:
 #     role = await synthesize_role_context(role_title, sector, user_intent)

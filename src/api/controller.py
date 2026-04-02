@@ -35,7 +35,7 @@ async def enhance_cv_stream(request: Request, payload: EnhanceCVRequest):
                 raw_cv=payload.input_cv,
                 project_specs=project_specs,
                 role_assignment=combined_role_context,
-                chunk_size=2 
+                chunk_size=2
             ):
                 # Format payload according to SSE standards: "data: <json>\n\n"
                 yield f"data: {json.dumps(update)}\n\n"
