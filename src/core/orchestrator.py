@@ -18,61 +18,11 @@ def load_system_prompt(filename: str = "system_prompt.txt") -> str:
     with open(prompt_path, "r") as file:
         return file.read()
 
-# --- MAIN ORCHESTRATOR ---
-
-async def process_cv_enhancement(raw_cv: Dict[str, Any], project_specs: str, role_assignment: str, chunk_size: int = 4) -> Dict[str, Any]:
-    """
-    The main Map-Reduce orchestrator for tailoring long CVs.
-    """
-    # 1. Parse & Segregate Data
-    static_data, all_projects, original_description = _extract_and_validate_cv(raw_cv)
-    
-    if not all_projects:
-        return {**static_data, "description": original_description, "projects": []}
-
-    system_prompt = load_system_prompt()
-
-    # 2. MAP: Prepare Tasks
-    project_chunks, project_tasks = _prepare_project_tasks(
-        all_projects, project_specs, role_assignment, system_prompt, chunk_size
-    )
-    desc_task = async_rewrite_description(
-        original_description, project_specs, role_assignment, system_prompt
-    )
-
-    # 3. EXECUTE: Run parallel AI generation
-    logger.info(f"Sending {len(project_tasks)} chunk(s) and 1 description task to Azure OpenAI...")
-    results = await asyncio.gather(*project_tasks, desc_task, return_exceptions=True)
-
-    # 4. REDUCE: Process results and calculate tokens
-    tailored_projects, chunk_tokens = _reduce_projects(results[:-1], project_chunks)
-    final_description, desc_tokens = _reduce_description(results[-1], original_description)
-
-    # 5. Log Performance & Validate
-    _log_token_usage(chunk_tokens, desc_tokens)
-    _validate_integrity(len(all_projects), len(tailored_projects))
-
-    # 6. Reassemble Final CV
-    return {
-        **static_data,
-        "description": final_description,
-        "projects": tailored_projects
-    }
-
-# async def get_role_prompt(role_title: str, sector: str, user_intent: str) -> str:
-#     role = await synthesize_role_context(role_title, sector, user_intent)
-#     return role
-
-# --- PRIVATE HELPER FUNCTIONS ---
+# --- PRIVATE HELPERS ---
 
 def _extract_and_validate_cv(raw_cv: Dict[str, Any]) -> Tuple[Dict[str, Any], List[Dict], str]:
     """Validates input and separates static fields from dynamic fields."""
-    try:
-        validated_cv = FullCV(**raw_cv)
-    except Exception as e:
-        logger.error(f"Input CV failed validation: {e}")
-        raise ValueError("Invalid CV JSON format")
-
+    validated_cv = FullCV(**raw_cv)
     cv_dict = validated_cv.model_dump()
     
     static_keys = ["name", "skills", "employee_id", "educations", "certifications", "trainings", "languages", "memberships"]
@@ -80,67 +30,136 @@ def _extract_and_validate_cv(raw_cv: Dict[str, Any]) -> Tuple[Dict[str, Any], Li
     
     projects = cv_dict.get("projects", [])
     description = cv_dict.get("description", "")
-    
     return static_data, projects, description
 
-def _prepare_project_tasks(projects: List[Dict], specs: str, role: str, prompt: str, chunk_size: int) -> Tuple[List[List[Dict]], List[asyncio.Task]]:
-    """Chunks projects and builds the async tasks. Removes description to save tokens."""
-    chunks = [projects[i:i + chunk_size] for i in range(0, len(projects), chunk_size)]
-    
+async def _run_task_with_identity(task_type: str, index: int, coro):
+    """Wraps a coroutine so we know exactly which task finished in the as_completed stream."""
+    try:
+        result = await coro
+        return task_type, index, result, None
+    except Exception as e:
+        return task_type, index, None, e
+
+# --- MAIN STREAMING ORCHESTRATOR ---
+
+async def process_cv_enhancement_stream(raw_cv: Dict[str, Any], project_specs: str, role_assignment: str, chunk_size: int = 2):
+    """
+    Yields Server-Sent Event dictionaries reflecting real-time progress.
+    """
+    yield {"status": "processing", "progress": 5, "message": "Validating CV data and extracting history..."}
+
+    try:
+        static_data, all_projects, original_description = _extract_and_validate_cv(raw_cv)
+    except Exception as e:
+        logger.error(f"Input CV failed validation: {e}")
+        yield {"status": "failed", "progress": 100, "message": "Invalid CV JSON format."}
+        return
+
+    if not all_projects:
+        yield {
+            "status": "completed", 
+            "progress": 100, 
+            "message": "Nothing to tailor.", 
+            "data": {**static_data, "description": original_description, "projects": []}
+        }
+        return
+
+    yield {"status": "processing", "progress": 10, "message": "Preparing AI context and creating task chunks..."}
+
+    system_prompt = load_system_prompt()
+    chunks = [all_projects[i:i + chunk_size] for i in range(0, len(all_projects), chunk_size)]
     tasks = []
-    for chunk in chunks:
-        # Note: Description removed from payload to minimize prompt tokens
-        payload = {"projects": chunk} 
-        tasks.append(
-            async_tailor_chunk(chunk_data=payload, project_specs=specs, role_assignment=role, system_prompt=prompt)
+
+    # Prepare project chunk tasks (Notice: description removed to save tokens)
+    for i, chunk in enumerate(chunks):
+        coro = async_tailor_chunk(
+            chunk_data={"projects": chunk},
+            project_specs=project_specs,
+            role_assignment=role_assignment,
+            system_prompt=system_prompt
         )
+        tasks.append(_run_task_with_identity("chunk", i, coro))
+
+    # Prepare description task
+    desc_coro = async_rewrite_description(
+        original_description=original_description,
+        project_specs=project_specs,
+        role_assignment=role_assignment,
+        system_prompt=system_prompt
+    )
+    tasks.append(_run_task_with_identity("description", 0, desc_coro))
+
+    total_tasks = len(tasks)
+    completed_tasks = 0
+    yield {"status": "processing", "progress": 15, "message": f"Executing {total_tasks} AI generation tasks in parallel..."}
+
+    # Tracking outputs
+    chunk_results = [None] * len(chunks)
+    final_description = original_description
+    total_prompt_tokens = 0
+    total_completion_tokens = 0
+
+    # Execute and stream results as they finish
+    for future in asyncio.as_completed(tasks):
+        task_type, index, result, error = await future
+        completed_tasks += 1
         
-    return chunks, tasks
+        # Calculate dynamic progress percentage (15% to 90%)
+        progress = 15 + int((completed_tasks / total_tasks) * 75)
 
-def _reduce_projects(chunk_results: List[Any], original_chunks: List[List[Dict]]) -> Tuple[List[Dict], Dict[str, int]]:
-    """Reassembles project chunks and aggregates tokens, handling fallbacks."""
-    tailored_projects = []
-    tokens = {"prompt": 0, "completion": 0}
-
-    for i, result in enumerate(chunk_results):
-        if isinstance(result, Exception):
-            logger.error(f"Chunk {i} failed: {result}. Using original chunk.")
-            tailored_projects.extend(original_chunks[i])
+        if error:
+            logger.error(f"AI Task {task_type} failed: {error}")
+            msg = f"Task failed, relying on original data ({completed_tasks}/{total_tasks})"
+            if task_type == "chunk":
+                chunk_results[index] = chunks[index] # Fallback
         else:
-            tokens["prompt"] += result["usage"].prompt_tokens
-            tokens["completion"] += result["usage"].completion_tokens
-            tailored_projects.extend(result["data"].get("projects", []))
+            # Aggregate tokens
+            total_prompt_tokens += result["usage"].prompt_tokens
+            total_completion_tokens += result["usage"].completion_tokens
             
-    return tailored_projects, tokens
+            # Save data
+            if task_type == "chunk":
+                chunk_results[index] = result["data"].get("projects", [])
+                msg = f"Tailored project chunk {index + 1} successfully ({completed_tasks}/{total_tasks})"
+            else:
+                final_description = result["data"].get("description", original_description)
+                msg = f"Rewrote professional summary successfully ({completed_tasks}/{total_tasks})"
 
-def _reduce_description(desc_result: Any, original_desc: str) -> Tuple[str, Dict[str, int]]:
-    """Extracts the final description and its tokens, handling fallbacks."""
-    tokens = {"prompt": 0, "completion": 0}
-    
-    if isinstance(desc_result, Exception):
-        logger.error(f"Description rewrite failed: {desc_result}. Using original.")
-        return original_desc, tokens
-        
-    tokens["prompt"] += desc_result["usage"].prompt_tokens
-    tokens["completion"] += desc_result["usage"].completion_tokens
-    
-    return desc_result["data"].get("description", original_desc), tokens
+        yield {"status": "processing", "progress": progress, "message": msg}
 
-def _log_token_usage(chunk_tokens: Dict[str, int], desc_tokens: Dict[str, int]):
-    """Aggregates and formats the final token report."""
-    total_prompt = chunk_tokens["prompt"] + desc_tokens["prompt"]
-    total_completion = chunk_tokens["completion"] + desc_tokens["completion"]
-    
+    # REDUCE phase
+    yield {"status": "processing", "progress": 95, "message": "Reassembling optimized CV..."}
+
+    tailored_projects = []
+    for res in chunk_results:
+        tailored_projects.extend(res)
+
     logger.info(f"""
     === TOKEN USAGE REPORT ===
-    Prompt Tokens:     {total_prompt}
-    Completion Tokens: {total_completion}
-    Total Tokens:      {total_prompt + total_completion}
+    Prompt Tokens:     {total_prompt_tokens}
+    Completion Tokens: {total_completion_tokens}
+    Total Tokens:      {total_prompt_tokens + total_completion_tokens}
     ==========================
     """)
 
-def _validate_integrity(expected_count: int, actual_count: int):
-    """Ensures no data loss occurred during the AI transformation."""
-    if expected_count != actual_count:
-        logger.error(f"Integrity Mismatch: Input {expected_count} projects, Output {actual_count}.")
-        raise RuntimeError("AI processing resulted in missing or extra projects.")
+    # Integrity Check
+    if len(tailored_projects) != len(all_projects):
+        yield {"status": "failed", "progress": 100, "message": "Fatal Error: AI hallucination resulted in missing projects."}
+        return
+
+    final_cv = {
+        **static_data,
+        "description": final_description,
+        "projects": tailored_projects
+    }
+
+    # Final completion yield containing the data payload
+    yield {"status": "completed", "progress": 100, "message": "CV Enhancement Complete!", "data": final_cv}
+
+# async def get_role_prompt(role_title: str, sector: str, user_intent: str) -> str:
+#     role = await synthesize_role_context(role_title, sector, user_intent)
+#     return role
+#     """Ensures no data loss occurred during the AI transformation."""
+#     if expected_count != actual_count:
+#         logger.error(f"Integrity Mismatch: Input {expected_count} projects, Output {actual_count}.")
+#         raise RuntimeError("AI processing resulted in missing or extra projects.")
