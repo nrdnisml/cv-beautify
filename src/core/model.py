@@ -1,5 +1,5 @@
 from typing import List, Optional, Any, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 IDType = Union[str, int, None]
 class Education(BaseModel):
@@ -73,13 +73,14 @@ class CVChunkResponse(BaseModel):
 
 # The full CV schema for API validation
 class FullCV(BaseModel):
-    name: str
-    skills: List[str]
-    description: str
     employee_id: str
-    educations: List[Education]
-    certifications: List[Certification]
-    trainings: List[Training]
+    name: str
+    description: str
     projects: List[Project]
-    languages: List[Language]
-    memberships: List[Membership]
+    # skills: List[str]
+    # educations: List[Education]
+    # certifications: List[Certification]
+    # trainings: List[Training]
+    # languages: List[Language]
+    # memberships: List[Membership]
+    

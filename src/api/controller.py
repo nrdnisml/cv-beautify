@@ -3,7 +3,12 @@ import json
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from src.api.schemas import EnhanceCVRequest
+from src.api.schemas import (
+    EnhanceCVRequest,
+    SSEProcessingResponse,
+    SSEFinalResponse,
+    SSEErrorResponse
+)
 from src.api.security import auth_guard
 from src.api.limiter import limiter
 from src.core.orchestrator import process_cv_enhancement_stream
@@ -15,7 +20,23 @@ logger = logging.getLogger("CVEnhancementController")
 
 @router.post(
     "/api/v1/enhance-cv/stream",
-    dependencies=[Depends(auth_guard.verify)]
+    dependencies=[Depends(auth_guard.verify)],
+    responses={
+        200: {
+            "description": "SSE Stream. Yields 'processing' updates, followed by either a 'completed' payload or a 'failed' error state.",
+            "content": {
+                "text/event-stream": {
+                    "schema": {
+                        "oneOf": [
+                            SSEProcessingResponse.model_json_schema(),
+                            SSEFinalResponse.model_json_schema(),
+                            SSEErrorResponse.model_json_schema()
+                        ]
+                    }
+                }
+            }
+        }
+    }
 )
 @limiter.limit("5/minute")
 async def enhance_cv_stream(request: Request, payload: EnhanceCVRequest):
