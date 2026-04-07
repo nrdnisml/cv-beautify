@@ -16,19 +16,19 @@ class EnhanceCVRequest(BaseModel):
                     "employee_id": "23444",
                     "projects": [
                         {
+                            "id": "ProjectExperience object (3477)",
+                            "cv": "CurriculumVitae object (25215)",
                             "company": "PT. TRIPATRA",
                             "project": "Medco DFO Project",
                             "client": "PT. Medco...",
                             "date_start": "2023-07-01",
+                            "date_end": "2023-08-01",
                             "ongoing": True,
-                            "date_end": None,
                             "role": "Project Manager",
                             "project_description": "EPCC of facility optimizations...",
                             "responsibilities": "Develop Project Management Plan...",
                             "sectors": ["Oil and Gas"],
-                            "DELETE": False,
-                            "id": "ProjectExperience object (3477)",
-                            "cv": "CurriculumVitae object (25215)"
+                            "DELETE": False
                         }
                     ]
                 },
