@@ -36,16 +36,16 @@ class Training(BaseModel):
 class Project(BaseModel):
     id: IDType = None  # Replaced Any with IDType
     cv: IDType = None  # Replaced Any with IDType
-    company: str
-    project: str
-    client: str
-    date_start: str
+    company: Optional[str]
+    project: Optional[str]
+    client: Optional[str]
+    date_start: Optional[str]
     ongoing: bool
     date_end: Optional[str]
-    role: str
-    project_description: str = Field(description="Brief overview of the PROJECT itself (e.g., scale, objective, technology used). ""Focus on the project as an object, NOT the candidate's personal tasks.")
-    responsibilities: str = Field(description="Tailored responsibilities and personal contributions of the CANDIDATE. Do NOT invent new facts.")
-    sectors: List[str]
+    role: Optional[str]
+    project_description: Optional[str] = Field(default="", description="Brief overview of the PROJECT itself (e.g., scale, objective, technology used). ""Focus on the project as an object, NOT the candidate's personal tasks.")
+    responsibilities: Optional[str] = Field(default="", description="Tailored responsibilities and personal contributions of the CANDIDATE. Do NOT invent new facts.")
+    sectors: Optional[List[str]] = Field(default_factory=list)
     DELETE: bool = False
 
 class Language(BaseModel):
