@@ -57,3 +57,13 @@ class SSEErrorResponse(BaseModel):
     status: str = Field("failed", example="failed")
     progress: int = Field(100, example=100)
     message: str = Field(..., example="Server encountered a critical error: [Error Details]")
+    
+# --- Domain Synthesizer Response Schema ---
+class DomainSynthesisResponse(BaseModel):
+    standardized_sector_key: str = Field(
+        description="A short, clean, snake_case key representing the exact industry sector derived from the user's input. "
+                    "Example: 'mining', 'oil_and_gas', 'renewable_energy', 'aerospace'."
+    )
+    prompt_content: str = Field(
+        description="The complete, filled-out domain framework template based strictly on the provided format."
+    )

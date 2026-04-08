@@ -1,6 +1,6 @@
 import logging
 import json
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
 from src.api.schemas import (
@@ -9,10 +9,10 @@ from src.api.schemas import (
     SSEFinalResponse,
     SSEErrorResponse
 )
+from src.utils.prompt_loader import PromptLoader
 from src.api.security import auth_guard
 from src.api.limiter import limiter
 from src.core.orchestrator import process_cv_enhancement_stream
-from src.utils.prompt_loader import PromptLoader
 
 router = APIRouter()
 logger = logging.getLogger("CVEnhancementController")
@@ -42,20 +42,14 @@ logger = logging.getLogger("CVEnhancementController")
 async def enhance_cv_stream(request: Request, payload: EnhanceCVRequest):
     logger.info("Received CV streaming request to enhance for role: %s", payload.role_assignment)
 
-    loader = PromptLoader()
-    project_specs = loader.sectorSelector(payload.project_sector)
-    combined_role_context = (
-        f"Target Role: {payload.role_assignment}\n"
-        f"Specific User Intent/Instructions: {payload.user_intent or 'No specific additional instructions provided.'}"
-    )
-
     async def event_generator():
         try:
             # Consume the orchestrator stream
             async for update in process_cv_enhancement_stream(
                 raw_cv=payload.input_cv,
-                project_specs=project_specs,
-                role_assignment=combined_role_context,
+                project_sector=payload.project_sector,
+                role_assignment=payload.role_assignment,
+                user_intent=payload.user_intent,
                 chunk_size=2
             ):
                 # Format payload according to SSE standards: "data: <json>\n\n"
@@ -81,19 +75,13 @@ async def enhance_cv_stream(request: Request, payload: EnhanceCVRequest):
 async def get_sectors(request: Request):
     logger.info("Fetching available industry sectors.")
 
-    sectors_map = {
-        "green": "Green Energy",
-        "minerals": "Minerals",
-        "oil_and_gas": "Oil and Gas",
-        "petrochemical": "Petrochemical",
-        "power": "Power",
-        "telecommunication": "Telecommunication"
-    }
+    loader = PromptLoader()
+    sectors = loader.get_available_sectors()
 
     return {
         "code": 200,
         "status": "success",
-        "data": sectors_map
+        "data": sectors
     }
 
 

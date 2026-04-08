@@ -7,6 +7,8 @@ services:
       - "8181:8181"
     env_file:
       - .env
+    volumes:
+      - ./src/prompts:/app/src/prompts
     # Optional: If your SSE endpoints are under heavy load and you want to ensure
     # Docker doesn't kill the container prematurely during a graceful shutdown,
     # you can increase the stop grace period.

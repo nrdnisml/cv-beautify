@@ -1,8 +1,10 @@
 import os
 import json
 import logging
+from typing import Any, Dict
 from openai import AsyncAzureOpenAI
 from azure.identity import ManagedIdentityCredential, get_bearer_token_provider
+from src.api.schemas import DomainSynthesisResponse
 from src.core.model import CVChunkResponse, Description
 from dotenv import load_dotenv
 
@@ -214,3 +216,46 @@ async def synthesize_role_context(
     except Exception as e:
         logger.error(f"Failed to synthesize role context: {str(e)}")
         return f"Role: {role_title}\nSector: {sector}\nIntent: {user_intent}"
+    
+async def async_synthesize_domain_prompt(user_sector_input: str) -> Dict[str, Any]:
+    """
+    Generates a domain prompt AND extracts the standardized sector key.
+    Returns: (standardized_sector_key, prompt_content)
+    """
+    loader = PromptLoader()
+    base_template = loader.load_domain_prompt("synthesize_domain")
+    
+    system_message = (
+        "You are an expert Prompt Engineer and Domain Specialist. "
+        "Your task is to identify the exact industry sector from the user's input, "
+        "create a short snake_case key for it, and populate the domain framework template."
+    )
+    
+    user_message = (
+        f"User Input Context: '{user_sector_input}'\n\n"
+        f"1. Identify the core industry sector from the input.\n"
+        f"2. Generate the exact domain framework using this template:\n\n{base_template}"
+    )
+
+    try:
+        response = await client.beta.chat.completions.parse(
+            model=deployment_mini,
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            response_format=DomainSynthesisResponse,
+            temperature=0.2
+        )
+        
+        result = response.choices[0].message.parsed
+        
+        return {
+            "standardized_sector_key": result.standardized_sector_key,
+            "prompt_content": result.prompt_content,
+            "usage": response.usage
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to synthesize domain prompt for input '{user_sector_input}': {str(e)}")
+        raise e

@@ -1,0 +1,13 @@
+### [engineering] DOMAIN FRAMEWORK
+**Scope:** engineering services, design, project management, consulting  
+**Assets:** infrastructure projects, product development, systems engineering  
+**Lifecycle:** concept, design, implementation, operation, maintenance  
+**Technical Systems:** CAD software, project management tools, simulation software  
+**Compliance:** ISO 9001, ASME standards, local building codes  
+
+**CV REWRITE CONSTRAINTS:**  
+1. **Vernacular:** Use precise industry terminology.  
+2. **Focus:** Emphasize innovation, project efficiency, and technical expertise.  
+3. **Hierarchy:** Prioritize design and implementation phases and systems.  
+4. **Validation:** Align strictly with ISO 9001 and ASME standards.  
+5. **Integrity:** Fact-based only; no cross-sector hallucination.
