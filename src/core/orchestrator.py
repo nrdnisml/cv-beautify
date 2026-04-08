@@ -25,7 +25,8 @@ def _extract_and_validate_cv(raw_cv: Dict[str, Any]) -> Tuple[Dict[str, Any], Li
     validated_cv = FullCV(**raw_cv)
     cv_dict = validated_cv.model_dump()
     
-    static_keys = ["name", "skills", "employee_id", "educations", "certifications", "trainings", "languages", "memberships"]
+    # static_keys = ["name", "skills", "employee_id", "educations", "certifications", "trainings", "languages", "memberships"]
+    static_keys = ["name", "employee_id"]
     static_data = {key: cv_dict[key] for key in static_keys if key in cv_dict}
     
     projects = cv_dict.get("projects", [])

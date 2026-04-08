@@ -46,7 +46,7 @@ async def enhance_cv_stream(request: Request, payload: EnhanceCVRequest):
     project_specs = loader.sectorSelector(payload.project_sector)
     combined_role_context = (
         f"Target Role: {payload.role_assignment}\n"
-        f"Specific User Intent/Instructions: {payload.user_intent}"
+        f"Specific User Intent/Instructions: {payload.user_intent or 'No specific additional instructions provided.'}"
     )
 
     async def event_generator():

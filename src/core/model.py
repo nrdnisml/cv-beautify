@@ -34,6 +34,8 @@ class Training(BaseModel):
     cv: IDType = None  # Replaced Any with IDType
 
 class Project(BaseModel):
+    id: IDType = None  # Replaced Any with IDType
+    cv: IDType = None  # Replaced Any with IDType
     company: str
     project: str
     client: str
@@ -41,12 +43,10 @@ class Project(BaseModel):
     ongoing: bool
     date_end: Optional[str]
     role: str
-    project_description: str
-    responsibilities: str = Field(description="Tailored responsibilities highly matching project specs. Do NOT invent new facts.")
+    project_description: str = Field(description="Brief overview of the PROJECT itself (e.g., scale, objective, technology used). ""Focus on the project as an object, NOT the candidate's personal tasks.")
+    responsibilities: str = Field(description="Tailored responsibilities and personal contributions of the CANDIDATE. Do NOT invent new facts.")
     sectors: List[str]
     DELETE: bool = False
-    id: IDType = None  # Replaced Any with IDType
-    cv: IDType = None  # Replaced Any with IDType
 
 class Language(BaseModel):
     language: str

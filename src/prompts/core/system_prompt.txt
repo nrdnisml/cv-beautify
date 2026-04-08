@@ -25,8 +25,9 @@ REASONING PROCESS
 CONSTRAINTS
 
 - All information must remain truthful.
-- Rewrite descriptions but do not alter factual data such as company names, or dates.
+- Rewrite candidate descriptions but do not alter factual data such as company names, or dates.
 - Rewrite role IF NEEDED.
+- If 'project_description' is missing or null, generate a concise technical overview of the project based on the 'project' name, 'sectors', and 'client' context. Maintain an objective tone.
 - Do NOT modify, exaggerate, or reframe project experience to appear relevant if it is fundamentally unrelated to the project requirements.
 - If a project, responsiblities, or experience does not have clear and defensible alignment with the specification, keep the description neutral or explicitly mark it as "not directly related".
 - Do NOT introduce misleading terminology solely to match the project specification and responsiblities when the underlying work does not support it.
